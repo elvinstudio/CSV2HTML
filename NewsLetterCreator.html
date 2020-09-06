@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+</head>
+
+<body onload="opening();">
+    <div id="configuration" name="configuration">
+        Configuration File：<input type="file" name="filePath" id="filePath" accept="text/plain" />&nbsp;&nbsp;
+        <input type="button" value="Extract File" onclick="read_config()" />
+    </div>
+    <div id="page_body" name="page_body">
+        <form id="SectionMaster">
+            <table>
+                <tr valign="top">
+                    <td>
+                        <select name="ItemsList" size="5" style="width:500px;height:500px"
+                            onclick="read_item_details('SectionA')">
+                        </select>
+                    </td>
+                    <td>
+                        <img src="placeholder.png" style="width:20px;height:10px" />
+                    </td>
+                    <td>
+                        <div id="editBoxes" name="editBoxes">
+                            <table>
+                                <tr>
+                                    <td>
+                                        <table>
+                                            <tr valign="top">
+                                                <td colspan="2">
+                                                    Pipe mark "|" is not allowed in any text ！！<br /><br />
+                                                </td>
+                                            </tr>
+                                            <tr valign="top">
+                                                <td>
+                                                    Token：
+                                                </td>
+                                                <td>
+                                                    <input name="Token" type="text" style="width:400px;"
+                                                        readOnly=true><br /><br />
+                                                </td>
+                                            </tr>
+                                            <tr valign="top">
+                                                <td>
+                                                    Section:
+                                                </td>
+                                                <td>
+                                                    <select name="SectionValue">
+                                                        <option value="SectionA">SectionA</option>
+                                                        <option value="SectionB">SectionB</option>
+                                                        <option value="SectionC">SectionC</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr valign="top">
+                                                <td>
+                                                    Topic：
+                                                </td>
+                                                <td>
+                                                    <input name="Topic" type="text" style="width:400px;"><br /><br />
+                                                </td>
+                                            </tr>
+                                            <tr valign="top">
+                                                <td>
+                                                    Title：
+                                                </td>
+                                                <td>
+                                                    <input name="Title" type="text" style="width:400px;"><br />
+                                                </td>
+                                            </tr>
+                                            <tr valign="top">
+                                                <td>
+                                                    Title link：
+                                                </td>
+                                                <td>
+                                                    <input name="TitleLink" type="text"
+                                                        style="width:400px;"><br /><br />
+                                                </td>
+                                            </tr>
+                                            <tr valign="top">
+                                                <td>
+                                                    Picture location：
+                                                </td>
+                                                <td>
+                                                    <input name="Pic" type="text" style="width:400px;"><br />
+                                                </td>
+                                            </tr>
+                                            <tr valign="top">
+                                                <td>
+                                                    Picture link:
+                                                </td>
+                                                <td>
+                                                    <input name="PicLink" type="text" style="width:400px;"><br /><br />
+                                                </td>
+                                            </tr>
+                                            <tr valign="top">
+                                                <td>
+                                                    Description:
+                                                </td>
+                                                <td>
+                                                    <textarea rows="10" cols="50" name="Description"></textarea>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <br />
+                                                    <input type="button" value="Temp. Save Changes"
+                                                        onclick="save_changes()">
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        Count:<input name="ItemCount" type="text" style="width:20px;"> &nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type="button" value="Move Up" onclick="move_item(-1)">&nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type="button" value="Move Down" onclick="move_item(+1)">&nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type="button" value="New" onclick="add_item()">
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type="button" value="Delete" onclick="delete_item()">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <br /><br /><br />
+                        <br />Placeholder location: <br />
+                        <input id="placeholder" type="text" style="width:400px;" value="" + placeholder
+                            + ""><br /><br />
+                        <br />Subject:<br />
+                        <input id="subject" type="text" style="width:400px;"
+                            value="                        Your Consumer Newsletter@2020 Q2                    "><br /><br />
+                        <input type="button" value="Generate Files" onclick="export_files()"><br /><br /><br /><br />
+
+
+
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        <table>
+                            <tr>
+                                <td>HTML file script(save as *.html):<br />
+                                    <textarea rows="10" cols="50" id="HTML_RESULT"></textarea>
+                                </td>
+                                <td>Configuration file (save as *.csv):<br />
+                                    <textarea rows="10" cols="50" id="CSV_RESULT"></textarea>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+    <div id="newsletter_html"></div>
+
+
+    <script type="text/javascript">
+        function opening() {
+            document.getElementById('page_body').style.display = 'none';
+            document.getElementById('editBoxes').style.display = 'none';
+        };
+
+        function read_config() {
+            var File_Path = document.getElementById('filePath').files[0];
+            var reader = new FileReader();
+            reader.readAsText(File_Path);
+            reader.onload = function () {
+                var csv_lines = this.result.split("|");
+                var csv_line = [];
+                var select_box_item_value = "";
+                for (line_id in csv_lines) {
+                    select_box_item_value = ""
+                    csv_line = CSVtoArray(csv_lines[line_id]);
+                    temp = 0;
+                    if (csv_line[0].indexOf("Section") != -1 && csv_line[0].indexOf("Section ") == -1) {
+                        for (column in csv_line) {
+                            if (temp != 0) {
+                                select_box_item_value = select_box_item_value + "|";
+                            }
+                            select_box_item_value += csv_line[column].replace("|", "\\");
+                            temp += 1;
+                        }
+
+                        load_items(select_box_item_value);
+
+                        complete_configuration();
+                    }
+                }
+            }
+        };
+
+        function load_items(items_array) {
+            temp = 0;
+            var List = document.getElementById('SectionMaster');
+
+            List.ItemsList.options[List.ItemsList.length] = new Option(items_array.split("|")[0] + " - " + items_array
+                .split("|")[1] + " - " + items_array
+                .split("|")[3], items_array);
+            read_itemcount()
+        };
+
+        function read_itemcount() {
+            var List = document.getElementById('SectionMaster');
+
+            var itemCount = List.ItemsList.length;
+            List.ItemCount.value = itemCount
+        };
+
+        function read_item_details() {
+            var List = document.getElementById('SectionMaster');
+            var item_id = List.ItemsList.selectedIndex
+
+            var item_array = List.ItemsList.options[item_id].value.split('|')
+
+            sectionIndex = 0;
+            if (item_array[0] == "SectionB") {
+                sectionIndex = 1;
+            } else if (item_array[0] == "SectionC") {
+                sectionIndex = 2;
+            };
+            List.SectionValue.options[sectionIndex].selected = true;
+            List.Token.value = item_array[2];
+            List.Topic.value = item_array[1];
+            List.Title.value = item_array[3];
+            List.TitleLink.value = item_array[4];
+            List.Pic.value = item_array[5];
+            List.PicLink.value = item_array[6];
+            List.Description.value = item_array[7];
+
+            List.ItemsList.options[item_id].text = item_array[0] + " - " + List.Topic.value + " - " + List.Title.value;
+
+            document.getElementById('editBoxes').style.display = 'block';
+            read_itemcount()
+        };
+
+        function save_changes() {
+            var List = document.getElementById('SectionMaster');
+            var item_id = List.ItemsList.selectedIndex
+            sectionName = "SectionA";
+
+            senction_Index = List.SectionValue.selectedIndex
+
+            if (senction_Index == 1) {
+                sectionName = "SectionB";
+            } else if (senction_Index == 2) {
+                sectionName = "SectionC";
+            }
+
+            selected_item_value = sectionName + "|" + List.Topic.value + "|" + List.Token.value + "|" + List.Title
+                .value + "|" + List.TitleLink.value + "|" + List.Pic.value + "|" + List.PicLink.value + "|" + List
+                .Description.value;
+
+            console.log(selected_item_value);
+
+            List.ItemsList.options[item_id].value = selected_item_value;
+            read_item_details();
+        };
+
+        function delete_item() {
+            var List = document.getElementById('SectionMaster');
+            var item_id = List.ItemsList.selectedIndex
+
+            List.ItemsList.options[item_id] = null;
+            read_itemcount()
+        };
+
+        function add_item() {
+            var List = document.getElementById('SectionMaster');
+            var token = new Date().getTime() * Math.round(Math.random() * 10000)
+
+            List.ItemsList.options[List.ItemsList.length] = new Option("New Item" + token, "SectionA|NEW ITEM|" +
+                token +
+                "|NEW ITEM||||");
+            read_itemcount()
+        };
+
+        function move_item(to) {
+            var list = document.getElementById('SectionMaster').ItemsList;
+            var index = list.selectedIndex
+
+            var total = list.options.length - 1;
+            if (index == -1) return false;
+            if (to == +1 && index == total) return false;
+            if (to == -1 && index == 0) return false;
+            var items = new Array;
+            var values = new Array;
+            for (i = total; i >= 0; i--) {
+                items[i] = list.options[i].text;
+                values[i] = list.options[i].value;
+            }
+            for (i = total; i >= 0; i--) {
+                if (index == i) {
+                    list.options[i + to] = new Option(items[i], values[i + to], 0, 1);
+                    list.options[i] = new Option(items[i + to], values[i]);
+                    i--;
+                } else {
+                    list.options[i] = new Option(items[i], values[i]);
+                }
+            }
+            list.focus();
+
+            read_itemcount()
+        };
+
+        function CSVtoArray(text) {
+            var re_valid =
+                /^\s*(?:'[^'\\]*(?:\\[\S\s][^'\\]*)*'|"[^"\\]*(?:\\[\S\s][^"\\]*)*"|[^,'"\s\\]*(?:\s+[^,'"\s\\]+)*)\s*(?:,\s*(?:'[^'\\]*(?:\\[\S\s][^'\\]*)*'|"[^"\\]*(?:\\[\S\s][^"\\]*)*"|[^,'"\s\\]*(?:\s+[^,'"\s\\]+)*)\s*)*$/;
+            var re_value =
+                /(?!\s*$)\s*(?:'([^'\\]*(?:\\[\S\s][^'\\]*)*)'|"([^"\\]*(?:\\[\S\s][^"\\]*)*)"|([^,'"\s\\]*(?:\s+[^,'"\s\\]+)*))\s*(?:,|$)/g;
+
+            // Return NULL if input string is not well formed CSV string.
+            if (!re_valid.test(text)) return null;
+
+            var a = []; // Initialize array to receive values.
+            text.replace(re_value, // "Walk" the string using replace with callback.
+                function (m0, m1, m2, m3) {
+
+                    // Remove backslash from \' in single quoted values.
+                    if (m1 !== undefined) a.push(m1.replace(/\\'/g, "'"));
+
+                    // Remove backslash from \" in double quoted values.
+                    else if (m2 !== undefined) a.push(m2.replace(/\\"/g, '"'));
+                    else if (m3 !== undefined) a.push(m3);
+                    return ''; // Return empty string.
+                });
+
+            // Handle special case of empty last value.
+            if (/,\s*$/.test(text)) a.push('');
+            return a;
+        };
+
+        function complete_configuration() {
+            document.getElementById('configuration').style.display = 'none';
+            document.getElementById('page_body').style.display = 'block';
+        };
+
+        function export_files() {
+            placeholder = document.getElementById('placeholder').value;
+            opening_text = document.getElementById('subject').value;
+            html_file =
+                "<html><body leftmargin=\"0\" topmargin=\"0\" marginwidth=\"0\" marginheight=\"0\"><p margin=0><table align=\"center\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><!--headline--><tr valign=\"top\"> <td><table align=\"center\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr ><td colspan=\"2\" ><img src=\"http://10.162.8.180/img/Q2/headline1.png\" vspace=0 width=\"654\" /></td></tr><tr valign=\"top\"> <td ><a href=\"http://oneintelligence.loreal.com\" target=\"-blank\" title=\"OneIntelligence URL\"><img src=\"http://10.162.8.180/img/Q2/headline2-1.png\" vspace=0/></a></td><td ><img src=\"http://10.162.8.180/img/Q2/headline2-2.png\" vspace=0/></td></tr></table></td></tr><!--title --><tr valign=\"top\"> <td ><p align='center'><br/><br/><font size=5 face=\"Calibri\"><b>" +
+                opening_text + "</b></font></p><br/><br/><br/></td></tr>";
+
+            contact_info =
+                "<br /> <br /> <br /><tr><td colspan=\"3\" bgcolor=\"#a1a3a6\"><table><tr><td><table><tr><td><img src=\"\" width=\"400\" height=\"1\" /></td><td><img src=\"\" width=\"200\" height=\"1\" /></td></tr><tr valign=\"top\"><td><table><tr valign=\"top\"><td><img src=\"\" width=\"100\" height=\"1\" /><br />link1</td><td><b>our intelligence:</b><br />xxxxxx<br /><b>ourintelligence:</b><br />xxxxxx<br /></td></tr><tr><td><br /><br /></td></tr><tr valign=\"top\"><td>link1</td><td><b>our intelligence:</b><br />xxxxxx<br /><b>ourintelligence:</b><br />xxxxxx<br /></td></tr></table></td><td><table border=\"1\" cellpadding=\"0\" cellspacing=\"0\"bgcolor=\"#ffffff\"><tr valign=\"top\"><td colspan=\"2\">customer & market<br /><img src=\"\"width=\"250\" height=\"1\" /></td></tr><tr valign=\"top\"><td>xxxxxx</td><td>xxxxx</td></tr><tr valign=\"top\"><td>xxxxxx</td><td>xxxxx</td></tr><tr valign=\"top\"><td>xxxxxx</td><td>xxxxx</td></tr><tr valign=\"top\"><td>xxxxxx</td><td>xxxxx</td></tr><tr valign=\"top\"><td>xxxxxx</td><td>xxxxx</td></tr></table></td></tr></table></td></tr></table></td></tr>";
+            footer_script = contact_info + "</table></body></html>";
+
+            var list = document.getElementById('SectionMaster').ItemsList;
+            count = 0;
+            var item_array = "";
+            var section = "";
+            var topic = "";
+            var token = "";
+            var title = "";
+            var title_link = "";
+            var pic = "";
+            var pic_link = "";
+            var desc = "";
+
+            var previous_section = "";
+            var previous_topic = "";
+
+            var csv_file = "";
+
+            var section_b_count = 1;
+
+            while (count < list.options.length) {
+                item_array = list.options[count].value.split('|');
+                section = item_array[0];
+                topic = item_array[1];
+                token = item_array[2];
+                title = item_array[3];
+                title_link = item_array[4];
+                pic = item_array[5];
+                pic_link = item_array[6];
+                desc = item_array[7];
+
+                if (section == "SectionA") {
+                    if (previous_section != section) {
+                        html_file +=
+                            "<tr valign=\"top\"><td><p align='left'><font size=4 face=\"Calibri\"><b>THE LATEST REPORTS...<br/> <br/> </b></font></p></td></tr>";
+                        previous_section = section;
+                    };
+                    if (previous_topic != topic) {
+                        html_file +=
+                            "<tr valign=\"top\"><td></td></tr><tr valign=\"top\"><td bgcolor=\"#d9d9d9\"><table align=\"center\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr valign=\"center\"><td width=\"1%\" bgcolor=\"#d9d9d9\"><img src=\"" +
+                            placeholder +
+                            "\" height=\"50\" width=\"1\" /></td><td><p align='center'><font size=4 face=\"Calibri\"><b>" +
+                            topic +
+                            "</b><br/></font></p></td></tr></table></td></tr><tr valign=\"top\"><td><img src=\"" +
+                            placeholder +
+                            "\" height=\"15\" width=\"10\" /><br/></td></tr>";
+                        previous_topic = topic;
+                    };
+
+                    html_file +=
+                        "<tr valign=\"top\"><td><table align=\"center\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr valign=\"top\"><td><a href=\"" +
+                        pic_link + "\"><img src=\"" + pic +
+                        "\" height=\"111\" width=\"197\" /></a></td><td><img src=\"" + placeholder +
+                        "\" height=\"1\" width=\"10\" /></td><td><table align=\"left\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"430\"><tr valign=\"top\"><td colspan=\"2\" bgcolor=\"#5e9cd3\"><img src=\"" +
+                        placeholder +
+                        "\" height=\"5\" width=\"430\" /></td></tr><tr valign=\"top\"><td colspan=\"2\" bgcolor=\"#5e9cd3\"><table><tr valign=\"top\"><td><img src=\"" +
+                        placeholder +
+                        "\" height=\"1\" width=\"10\" /></td><td><font size=4 color=\"ffffff\" face=\"Calibri\"><b><a href=\"" +
+                        title_link + "\" style=\"text-decoration:none;color:#ffffff\">" +
+                        title +
+                        "</a></b></font></td></tr></table></td></tr><tr valign=\"top\"><td colspan=\"2\" bgcolor=\"#5e9cd3\"><img src=\"" +
+                        placeholder +
+                        "\" height=\"5\" width=\"430\" /></td></tr><tr valign=\"top\"><td width=\"1%\"><img src=\"" +
+                        placeholder + "\" height=\"50\" width=\"5\" /></td><td><font face=\"Calibri\"><p>" +
+                        desc + "</p></font><br/></td></tr></table></td></tr></table></td></tr>";
+
+                    csv_file += "\"" + section + "\",\"" + topic + "\",\"" + token + "\",\"" + title + "\",\"" +
+                        title_link + "\",\"" + pic + "\",\"" + pic_link + "\",\"" + desc + "\"|\n";
+                }
+
+                if (section == "SectionB") {
+                    if (previous_section != section) {
+                        html_file +=
+                            "<tr valign=\"top\"><td><br/><p align='left'><font size=4 face=\"Calibri\"><b>COMING SOON...<br/> <br/> </b></font></p></td></tr>";
+                        previous_section = section;
+                    };
+
+                    if (previous_topic != topic) {
+                        html_file +=
+                            "<tr valign=\"top\"><td></td></tr><tr valign=\"top\"><td bgcolor=\"#d9d9d9\"><table align=\"center\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr valign=\"center\"><td width=\"1%\"><img src=\"" +
+                            placeholder +
+                            "\" height=\"50\" width=\"1\" /></td><td><p align='center'><font size=4 face=\"Calibri\"><b>" +
+                            topic +
+                            "</b><br/></font></p></td></tr></table></td></tr><tr valign=\"top\"><td><img src=\"" +
+                            placeholder +
+                            "\" height=\"15\" width=\"10\" /><br/></td></tr><tr valign=\"top\"><td><table>";
+                        previous_topic = topic;
+                    };
+
+                    if (section_b_count % 2 != 0) {
+                        html_file +=
+                            "<tr valign=\"top\"><td><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr valign=\"center\"><td bgcolor=\"#5e9cd3\" height=\"70\" width=\"5\"><img src=\"" +
+                            placeholder +
+                            "\" height=\"1\" width=\"5\"/></td><td bgcolor=\"#5e9cd3\" width=\"317\"><font size=4 color=\"ffffff\" face=\"Calibri\" ><b>" +
+                            title + "</b> </font></td><td bgcolor=\"#5e9cd3\" width=\"5\"><img src=\"" + placeholder +
+                            "\" height=\"1\" width=\"5\"/></td></tr><tr valign=\"top\"><td bgcolor=\"#a1a3a6\" align=\"center\" width=\"317\" colspan=\"3\" ><img src=\"" +
+                            pic +
+                            "width=\"317\"/></td></tr><tr valign=\"top\"><td colspan=\"3\" > <font size=4 color=\"5e9cd3\" face=\"Calibri\">" +
+                            desc + "<br/><br/></font></td></tr></table>";
+                        section_b_count += 1;
+                    } else {
+                        html_file += "</td><td><img src=\"" + placeholder +
+                            "\" height=\"1\" width=\"20\"/></td><td><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr valign=\"center\"><td bgcolor=\"#5e9cd3\" height=\"70\" width=\"5\"><img src=\"" +
+                            placeholder +
+                            "\" height=\"1\" width=\"5\"/></td><td bgcolor=\"#5e9cd3\" width=\"317\"><font size=4 color=\"ffffff\" face=\"Calibri\" ><b>" +
+                            title + "</b> </font></td><td bgcolor=\"#5e9cd3\" width=\"5\"><img src=\"" + placeholder +
+                            "\" height=\"1\" width=\"5\"/></td></tr><tr valign=\"top\"><td bgcolor=\"#a1a3a6\" align=\"center\" width=\"317\" colspan=\"3\" ><img src=\"" +
+                            pic +
+                            "width=\"317\"/></td></tr><tr valign=\"top\"><td colspan=\"3\" ><font size=4 color=\"5e9cd3\" face=\"Calibri\">" +
+                            desc + "<br/><br/></font></td></tr></table></td></tr>";
+                        section_b_count += 1;
+                    };
+
+                };
+
+                count += 1;
+            };
+
+
+
+            if (html_file.indexOf("</td></tr></table><tr valign=\"top\"><td><p align='left'>") != -1) {
+                html_file.replace("</td></tr></table><tr valign=\"top\"><td><p align='left'>",
+                    "</td></tr></table></td><td><img src=\"" + placeholder +
+                    "\" height=\"1\" width=\"20\"/></td><td><img src=\"" + placeholder +
+                    "\" height=\"1\" width=\"317\"/></td></tr></table></td></tr><tr valign=\"top\"><td><p align='left'>"
+                );
+            };
+
+            html_file += footer_script;
+
+            document.getElementById('HTML_RESULT').value = html_file;
+            document.getElementById('CSV_RESULT').value = csv_file;
+
+            document.getElementById('newsletter_html').innerHTML = html_file;
+            window.scroll(0, 10000000);
+        };
+    </script>
+</body>
+
+</html>
